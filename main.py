@@ -16,16 +16,26 @@ D = dissimilarity_matrices(X)         # dissimilarity using euclidian distance
 
 """""""""""""""""""""""""""""""""""""""
 Calculates fuzzy partitions and prototypes
-for each parameter "q" on q_list
+for each parameter "q" on q_list, using
+all dissimilarity matrices simultaneously
+and individually
 """""""""""""""""""""""""""""""""""""""
 
 
-q_list = list(range(1, 11))               # list of "q" parameters
-results = dict((q, None) for q in q_list) # dict. to store the results (U, G)
 
+# list of "q" parameters
+q_list = list(range(1, 11))
 
-for q in q_list:
-    results[q] = MFCMdd_RWL_P(D, q=q, reps=100) # returns (U, G)
+results = {'all': {}, 'fac': {}, 'kar': {}, 'fou': {}}
+
+# all dissimilarity matrices simultaneously
+results['all'] = dict((q, MFCMdd_RWL_P(D, q=q, reps=100)) 
+                        for q in q_list) # dict. to store the results (U, G)
+
+# all dissimilarity matrices individually
+for i, mfeat in enumerate(list(results.keys())[1:]):
+    results[mfeat] = dict((q, MFCMdd_RWL_P(D[i:i+1], q=q, reps=100))
+                        for q in q_list) 
 
 
 
@@ -34,7 +44,11 @@ Calculates metrics for each "q"
 """""""""""""""""""""""""""""""""""""""
 
 
-metrics = dict((q, calc_metric(result[0], result[1], y)) for q, result in results.items())
+
+metrics = dict((mfeat, 
+                dict((q, calc_metric(result[0], result[1], y)) 
+                    for q, result in mfeat_results.items())) 
+              for mfeat, mfeat_results in results.items())
 
 
 
@@ -43,9 +57,10 @@ Stores crisp partitions in one file
 """""""""""""""""""""""""""""""""""""""
 
 
-with open('output/crisp_partitions.txt', 'w') as f:
-    for q, metric in metrics.items():
-        print('q={} : {}'.format(q, metric['crisp_partition']), file=f)
+for mfeat, mfeat_metrics in metrics.items():
+    with open('output/crisp_partitions_{}.txt'.format(mfeat), 'w') as f:
+        for q, metric in mfeat_metrics.items():
+            print('q={} : {}'.format(q, metric['crisp_partition']), file=f)
 
 
 """""""""""""""""""""""""""""""""""""""
@@ -53,10 +68,11 @@ Stores all metrics in one file
 """""""""""""""""""""""""""""""""""""""
 
 
-with open('output/results.txt', 'w') as f:
-    for q, metric in metrics.items():
-        print('q={}:'.format(q), file=f)
-        for key, value in metric.items():
-            print(key,'\n', value, file=f)
+for mfeat, mfeat_metrics in metrics.items():
+    with open('output/results_{}.txt'.format(mfeat), 'w') as f:
+        for q, metric in mfeat_metrics.items():
+            print('q={}:'.format(q), file=f)
+            for key, value in metric.items():
+                print(key,'\n', value, file=f)
 
         

@@ -17,7 +17,7 @@ def load_datasets():
     # import data
     df1 = pd.read_fwf('datasets/mfeat-fac', header=None) # mfeat-fac: 216 profile correlations;
     df2 = pd.read_fwf('datasets/mfeat-kar', header=None) # mfeat-kar: 64 Karhunen-Love coefficients;
-    df3 = pd.read_fwf('datasets/mfeat-fou', header=None) # 76 Fourier coefficients of the character shapes;
+    df3 = pd.read_fwf('datasets/mfeat-fou', header=None) # mfeat-fou: 76 Fourier coefficients of the character shapes;
 
     # select features and target data
     y = np.array([j for j in range(10) for i in range(200)]) # make target for classification.
