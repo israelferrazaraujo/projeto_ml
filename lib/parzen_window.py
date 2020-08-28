@@ -14,9 +14,6 @@ import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None  
 
-# import data
-dataset = pd.read_csv('data/preprocessed_mfeat.csv')
-
 #=============================================
 # PARZEN WINDOW [kernel desnity estimation]
 #=============================================
@@ -28,12 +25,12 @@ class ParzenMulticlassKDE():
     def __init__(self):
         self.models = {}
 
-    def train(self, data):
+    def train(self, data, parameter):
         from sklearn.neighbors import KernelDensity
         for classe in data['target'].unique():
             data_class = data[data['target'] == classe]
             data_class.drop('target', axis=1, inplace=True)
-            parzen_model = KernelDensity(bandwidth=0.2)
+            parzen_model = KernelDensity(bandwidth=parameter)
             parzen_model.fit(data_class.values)
             self.models[classe] = parzen_model
     
@@ -66,7 +63,7 @@ class ParzenMulticlassKDE():
 # compute each view and combine
 #===============================
 
-def select_view(data, view, train=True):
+def select_view_parzen(data, view, train=True):
     ''' function to select view data
     '''
     cols = [x for x in data.columns if view in x ]
@@ -75,26 +72,27 @@ def select_view(data, view, train=True):
     return data[cols]
 
 
-def parzen_view_modelling(train_data, test_data):
+def parzen_view_modelling(train_data, test_data, parameter):
     ''' build and run models for each view,
         combine probabilities of models for the final
         decision, return accuracy of model  
     '''
+
     target_test = test_data['target']
     test_data.drop('target', axis=1, inplace=True)
 
     # build models for each view and return probabilities
     parzen_view1 =  ParzenMulticlassKDE()
-    parzen_view1.train(select_view(train_data, 'view_fac'))
-    pred_parzen_view1 = parzen_view1.predict_proba(select_view(test_data,  'view_fac', train=False))
+    parzen_view1.train(select_view_parzen(train_data, 'fac'), parameter)
+    pred_parzen_view1 = parzen_view1.predict_proba(select_view_parzen(test_data,  'fac', train=False))
 
     parzen_view2 = ParzenMulticlassKDE()
-    parzen_view2.train(select_view(train_data, 'view_fou'))
-    pred_parzen_view2 = list(parzen_view2.predict_proba(select_view(test_data,  'view_fou', train=False)))
+    parzen_view2.train(select_view_parzen(train_data, 'fou'), parameter)
+    pred_parzen_view2 = list(parzen_view2.predict_proba(select_view_parzen(test_data,  'fou', train=False)))
 
     parzen_view3 = ParzenMulticlassKDE()
-    parzen_view3.train(select_view(train_data, 'view_kar'))
-    pred_parzen_view3 = list(parzen_view3.predict_proba(select_view(test_data,  'view_kar', train=False)))
+    parzen_view3.train(select_view_parzen(train_data, 'kar'), parameter)
+    pred_parzen_view3 = list(parzen_view3.predict_proba(select_view_parzen(test_data,  'kar', train=False)))
 
     # probability combination
     predictions = []
@@ -112,27 +110,4 @@ def parzen_view_modelling(train_data, test_data):
     accuracy = sum(correct_shots)/len(correct_shots)
     
     return accuracy
-
-
-#=======================================#
-#    30 times 10 k-fold experiment      #
-#=======================================#
-
-experiments_results = []
-for fold in dataset['kfold'].unique():
-    print('FOLD: '+str(fold))
-    cont=1
-    while cont <= 10:
-        # select fold test and train data
-        train_data = dataset[dataset['kfold']!=fold].reset_index(drop=True)
-        test_data = dataset[dataset['kfold']==fold].reset_index(drop=True)
-        # parzen mix modelling
-        acc, preds = parzen_view_modelling(train_data, test_data)
-        # append results
-        experiments_results.append(acc)
-        cont+=1
-
-#### save experiment data
-results_data = pd.DataFrame({'results': experiments_results})
-results_data.to_csv('results_parzen_experiment.csv')
 
