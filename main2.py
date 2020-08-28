@@ -65,7 +65,7 @@ def kfold_experiment(dataset, model, times_kfold, parameter):
 
 
 def searchParameter(dataset, model, times_kfold, parameter_list):
-    targets =  ['target_original'] + ['target_partition'+str(i) for i in range(8,11)]
+    targets =  ['target_original'] + ['target_partition'+str(i) for i in range(1,11)]
     experiment_results = {'target':[],'parameter':[], 'accuracy':[],'standard_deviation':[]}
     for target in targets:
         print(target)
@@ -86,11 +86,11 @@ def searchParameter(dataset, model, times_kfold, parameter_list):
 
 # search K for KNN
 #* long search = range(1,101)
-knn_search = searchParameter(data, 'KNN_', 5, range(1,10))
+knn_search = searchParameter(data, 'KNN_', 5, parameter_list = range(1,10))
 knn_search.to_csv('output/searches/KNN_search_k.csv', index=False)
 
 # search h for Paren 
 #* long search = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-parzen_search = searchParameter(data, 'Parzen_', 5, [0.1, 0.2, 0.3])
+parzen_search = searchParameter(data, 'Parzen_', 5, parameter_list = [0.1, 0.2, 0.3])
 parzen_search.to_csv('output/searches/Parsen_search_h.csv', index=False)
 
