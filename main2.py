@@ -3,6 +3,7 @@ import numpy as np
 import re
 from lib.datasets import load_datasets
 from lib.knn import KnnViewModelling
+from lib.gnb import GnbViewModelling
 from lib.parzen_window import *
 
 """""""""""""""""""""""""""""""""""""""
@@ -59,6 +60,8 @@ def kfold_experiment(dataset, model, times_kfold, parameter):
                 acc = KnnViewModelling(train_data, test_data, parameter)
             elif 'Parzen' in model:
                 acc = parzen_view_modelling(train_data, test_data, parameter)
+            elif 'GNB' in model:
+                acc = GnbViewModelling(train_data, test_data)
             experiments_results.append(acc)
             cont+=1
     return experiments_results
@@ -83,6 +86,10 @@ def searchParameter(dataset, model, times_kfold, parameter_list):
             experiment_results['target'].append(target)
     return pd.DataFrame(experiment_results)
 
+# experiment for GNB
+# there is no parameter to search
+knn_search = searchParameter(data, 'GNB_', 5, parameter_list = ['dummy'])
+knn_search.to_csv('output/searches/GNB.csv', index=False)
 
 # search K for KNN
 #* long search = range(1,101)
