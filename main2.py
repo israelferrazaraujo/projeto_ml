@@ -6,9 +6,12 @@ from lib.knn import KnnViewModelling
 from lib.gnb import GnbViewModelling
 from lib.parzen_window import ParzenViewModelling
 
+
+
+
 """""""""""""""""""""""""""""""""""""""
-Load normalized data, combine in df
-and shuffle for k-fold
+Load normalized data and identify views 
+for mixture classification 
 """""""""""""""""""""""""""""""""""""""
 
 # load normalized datasets      
@@ -25,6 +28,12 @@ kar.columns = ['kar_'+str(i) for i in kar.columns]
 # combine data
 data = pd.concat([fac, fou, kar, pd.DataFrame({'target_original':y})], axis=1) 
 
+
+
+"""""""""""""""""""""""""""""""""""""""
+random shuffle data and make 10 k-fold
+"""""""""""""""""""""""""""""""""""""""
+
 # read partition target classification and add data
 with open('output/crisp_partitions_all.txt') as f:
     partition_targets = f.readlines()
@@ -35,13 +44,19 @@ with open('output/crisp_partitions_all.txt') as f:
         data['target_partition'+str(i+1)] = partition
 
 
-# random shuffle data and make 10 k-fold
+
+
+"""""""""""""""""""""""""""""""""""""""
+random shuffle data and make 10 k-fold
+"""""""""""""""""""""""""""""""""""""""
+
 data = data.sample(frac=1).reset_index(drop=True)
 data['kfold'] = np.array([j for j in range(10) for i in range(200)])
 
 
 """""""""""""""""""""""""""""""""""""""
 search for K and h parameters
+and store accuracy and std dev
 """""""""""""""""""""""""""""""""""""""
 
 
@@ -76,12 +91,11 @@ def searchParameter(dataset, model, times_kfold, parameter_list):
         print(target)
         dataset['target'] = dataset[target]
         for parameter in parameter_list:
-            print('searching for '+ str(parameter))
+            print('parameter'+ str(parameter))
             # execute kfold experiment 
             exp_res = kfold_experiment(dataset, model+str(parameter), times_kfold, parameter)
             # get mean and standard deviation
             print(np.mean(exp_res))
-            print(np.std(exp_res))
             experiment_results['accuracy'].append(np.mean(exp_res)) 
             experiment_results['standard_deviation'].append(np.std(exp_res)) 
             experiment_results['parameter'].append(parameter)
@@ -91,13 +105,13 @@ def searchParameter(dataset, model, times_kfold, parameter_list):
 
 # experiment for GNB
 # there is no parameter to search
-knn_search = searchParameter(data, 'GNB_', times_kfold = 10, parameter_list = ['dummy'])
+knn_search = searchParameter(data, 'GNB_', times_kfold = 30, parameter_list = ['dummy'])
 knn_search.to_csv('output/searches/GNB.csv', index=False)
 
 # search K for KNN
-knn_search = searchParameter(data, 'KNN_', times_kfold = 10, parameter_list = range(1,3))
-knn_search.to_csv('output/searches/KNN_search_k.csv', index=False)
+knn_search = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = range(1,51))
+knn_search.to_csv('output/searches/knn_search_k.csv', index=False)
 
-# search h for Paren 
-parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-parzen_search.to_csv('output/searches/Parsen_search_h.csv', index=False)
+# search h for Parzen Window 
+parzen_search = searchParameter(data, 'Parzen_', times_kfold = 30, parameter_list = [0.1, 0.2])
+parzen_search.to_csv('output/searches/parzen_search_h.csv', index=False)
