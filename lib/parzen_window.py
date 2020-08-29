@@ -37,8 +37,8 @@ class ParzenWindowMulticlassKDE():
         models_preds = []
 
         # capture probs
-        for i in range(10): 
-            models_preds.append(np.exp(self.models[i].score_samples(test_data)))
+        for item in self.models.keys(): 
+            models_preds.append(np.exp(self.models[item].score_samples(test_data)))
 
         # normalization
         for i in range(len(models_preds[0])):
