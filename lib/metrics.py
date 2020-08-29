@@ -98,7 +98,6 @@ Auxiliary functions to calculate and format the metrics
 
 
 
-
 def calc_metric(U, G, y):
     from sklearn.metrics import adjusted_rand_score
 
@@ -116,5 +115,3 @@ def calc_metric(U, G, y):
               'crisp_partition' : list(crisp)}
 
     return result
-
-
