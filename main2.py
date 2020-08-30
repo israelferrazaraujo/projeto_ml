@@ -108,9 +108,9 @@ def searchParameter(dataset, model, times_kfold, parameter_list):
 #gnb_search.to_csv('output/searches/GNB.csv', index=False)
 
 # search K for KNN
-#knn_search = searchParameter(data, 'KNN_', times_kfold = 10, parameter_list = range(1,21))
-#knn_search.to_csv('output/searches/knn_search_k.csv', index=False)
+knn_search = searchParameter(data, 'KNN_', times_kfold = 10, parameter_list = range(1,51))
+knn_search.to_csv('output/searches/knn_search_k.csv', index=False)
 
 # search h for Parzen Window 
-parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-parzen_search.to_csv('output/searches/parzen_search_h.csv', index=False)
+#parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+#parzen_search.to_csv('output/searches/parzen_search_h.csv', index=False)
