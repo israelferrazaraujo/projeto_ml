@@ -110,7 +110,6 @@ def searchParameter(dataset, model, times_kfold, parameter_list):
 # search K for KNN
 #knn_search = searchParameter(data, 'KNN_', times_kfold = 10, parameter_list = range(1,21))
 #knn_search.to_csv('output/searches/knn_search_k.csv', index=False)
-print(knn_search[knn_search.])
 
 # search h for Parzen Window 
 parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
