@@ -104,13 +104,33 @@ def searchParameter(dataset, model, times_kfold, parameter_list):
 
 # experiment for GNB
 # there is no parameter to search
-#gnb_search = searchParameter(data, 'GNB_', times_kfold = 30, parameter_list = ['dummy'])
-#gnb_search.to_csv('output/searches/GNB.csv', index=False)
+gnb_search = searchParameter(data, 'GNB_', times_kfold = 30, parameter_list = ['dummy'])
+gnb_search.to_csv('output/searches/GNB.csv', index=False)
 
 # search K for KNN
-knn_search = searchParameter(data, 'KNN_', times_kfold = 10, parameter_list = range(1,51))
+knn_search = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = [3])
 knn_search.to_csv('output/searches/knn_search_k.csv', index=False)
 
 # search h for Parzen Window 
-#parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
-#parzen_search.to_csv('output/searches/parzen_search_h.csv', index=False)
+parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+parzen_search.to_csv('output/searches/parzen_search_h.csv', index=False)
+
+
+#====================================================
+# execute experiments with best accuracy parameter
+# for KNN and Parzen Window
+#======================================================
+
+knn_search = pd.read_csv('output/searches/knn_search_k.csv')
+knn_search.sort_values('accuracy')
+
+knn = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = [3])
+knn.to_csv('output/searches/knn.csv', index=False)
+
+#=========
+
+parzen_search = pd.read_csv('output/searches/parzen_search_h.csv')
+parzen_search.sort_values('accuracy')
+
+parzen = searchParameter(data, 'Parzen_', times_kfold = 30, parameter_list = [0.2,0.3,0.1])
+parzen.to_csv('output/searches/parzen.csv', index=False)
