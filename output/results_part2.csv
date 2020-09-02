@@ -1,0 +1,4 @@
+,model,mean_accuracy,confidence_interval_90,confidence_interval_95
+0,gnb_target_partition2,0.7625,"(0.725, 0.8)","(0.725, 0.8)"
+1,knn_target_partition2,0.8165,"(0.795, 0.865)","(0.795, 0.865)"
+2,parzen_target_partition2,0.17999999999999997,"(0.025, 0.235)","(0.025, 0.235)"
