@@ -44,7 +44,6 @@ with open('output/crisp_partitions_all.txt') as f:
 
 
 
-
 """""""""""""""""""""""""""""""""""""""
 random shuffle data and make 10 k-fold
 """""""""""""""""""""""""""""""""""""""
@@ -81,7 +80,7 @@ def kfold_experiment(dataset, model, times_kfold, parameter):
     return experiments_results
 
 
-def searchParameter(dataset, model, times_kfold, parameter_list):
+def searchParameter(dataset, model, times_kfold, parameter_list, get_distribution=False):
 
     targets =  ['target_original'] + ['target_partition'+str(i) for i in range(1,11)]
     experiment_results = {'target':[],'parameter':[], 'accuracy':[],'standard_deviation':[]}
@@ -94,18 +93,21 @@ def searchParameter(dataset, model, times_kfold, parameter_list):
             # execute kfold experiment 
             exp_res = kfold_experiment(dataset, model+str(parameter), times_kfold, parameter)
             # get mean and standard deviation
-            print(np.mean(exp_res))
-            experiment_results['accuracy'].append(np.mean(exp_res)) 
-            experiment_results['standard_deviation'].append(np.std(exp_res)) 
-            experiment_results['parameter'].append(parameter)
-            experiment_results['target'].append(target)
-
+            if get_distribution == False:
+                print(np.mean(exp_res))
+                experiment_results['accuracy'].append(np.mean(exp_res)) 
+                experiment_results['standard_deviation'].append(np.std(exp_res)) 
+                experiment_results['parameter'].append(parameter)
+                experiment_results['target'].append(target)
+            else:
+                experiment_results['accuracy'].append(exp_res) 
+                experiment_results['parameter'].append(parameter)
+                experiment_results['target'].append(target)
+    # delete std if search false            
+    if get_distribution == True: 
+        del experiment_results['standard_deviation']
     return pd.DataFrame(experiment_results)
 
-# experiment for GNB
-# there is no parameter to search
-gnb_search = searchParameter(data, 'GNB_', times_kfold = 30, parameter_list = ['dummy'])
-gnb_search.to_csv('output/searches/GNB.csv', index=False)
 
 # search K for KNN
 knn_search = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = [3])
@@ -116,21 +118,19 @@ parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_lis
 parzen_search.to_csv('output/searches/parzen_search_h.csv', index=False)
 
 
-#====================================================
-# execute experiments with best accuracy parameter
-# for KNN and Parzen Window
-#======================================================
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+execute experiments with best accuracy parameter
+for KNN and Parzen Window
+"""""""""""""""""""""""""""""""""""""""""""""""""""
 
-knn_search = pd.read_csv('output/searches/knn_search_k.csv')
-knn_search.sort_values('accuracy')
+# GNB
+gnb = searchParameter(data, 'GNB_', times_kfold = 30, parameter_list = ['dummy'], get_distribution=True)
+gnb.to_csv('output/searches/GNB.csv', index=False)
 
-knn = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = [3])
+# KNN
+knn = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = [3], get_distribution=True)
 knn.to_csv('output/searches/knn.csv', index=False)
 
-#=========
-
-parzen_search = pd.read_csv('output/searches/parzen_search_h.csv')
-parzen_search.sort_values('accuracy')
-
-parzen = searchParameter(data, 'Parzen_', times_kfold = 30, parameter_list = [0.2,0.3,0.1])
+# Parzen Window
+parzen = searchParameter(data, 'Parzen_', times_kfold = 30, parameter_list = [0.3], get_distribution=True)
 parzen.to_csv('output/searches/parzen.csv', index=False)
