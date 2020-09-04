@@ -1,6 +1,3 @@
-
-
-# import paackages
 import pandas as pd
 import numpy as np
 
@@ -34,16 +31,16 @@ table1.to_csv('output/results_part2.csv')
 # friedman 
 from scipy.stats import friedmanchisquare
 stat, p = friedmanchisquare(best_models.accuracy[0], best_models.accuracy[1], best_models.accuracy[2])
-print('Friedman Test for All=%.3f, p=%.3f' % (stat, p))
+print('Friedman Test for All=%.6f, p=%.6f' % (stat, p))
 
 # paired wilcoxon
 from scipy.stats import wilcoxon
 
 stat, p = wilcoxon(best_models.accuracy[0], best_models.accuracy[1])
-print('Wilcoxon Test GNB/KNN =%.3f, p=%.3f' % (stat, p))
+print('Wilcoxon Test GNB/KNN =%.6f, p=%.6f' % (stat, p))
 
 stat, p = wilcoxon(best_models.accuracy[0], best_models.accuracy[2])
-print('Wilcoxon Test GNB/Parzen =%.3f, p=%.3f' % (stat, p))
+print('Wilcoxon Test GNB/Parzen =%.6f, p=%.6f' % (stat, p))
 
 stat, p = wilcoxon(best_models.accuracy[1], best_models.accuracy[2])
-print('Wilcoxon Test KNN/Parzen =%.3f, p=%.3f' % (stat, p))
+print('Wilcoxon Test KNN/Parzen =%.6f, p=%.6f' % (stat, p))

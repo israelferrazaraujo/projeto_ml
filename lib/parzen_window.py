@@ -34,22 +34,19 @@ class ParzenWindowMulticlassKDE():
             normalize probs between 0 and 1 
         '''
         final_preds =[]
-        models_preds = []
+        models_preds = {}
 
         # capture probs
         for item in self.models.keys(): 
-            models_preds.append(np.exp(self.models[item].score_samples(test_data)))
+            models_preds[item] = np.exp(self.models[item].score_samples(test_data))
 
         # normalization
         for i in range(len(models_preds[0])):
-            each_pred =[]
-            for preds in models_preds:
-                each_pred.append(preds[i])
-            norm_prob = (each_pred - min(each_pred)) / (each_pred - min(each_pred) ).sum()
-            if np.isnan(np.sum(norm_prob)):
-                norm_prob = [0]*10
-            final_preds.append(norm_prob)
-        return np.array(final_preds)
+            each_pred = {}
+            for preds in models_preds.keys():
+                each_pred[preds] = models_preds[preds][i]
+            final_preds.append(each_pred)
+        return final_preds
     
 
     def predict(self, test_data):
@@ -82,37 +79,46 @@ def select_view_parzen(data, view, train=True):
 
 
 
-def ParzenViewModelling(train_data, test_data, parameter):
+def ParzenViewModelling(train_data, validation_data, parameter):
     ''' build and run models for each view,
         combine probabilities of models for the final
         decision, return accuracy of model  
     '''
 
-    target_test = test_data['target']
-    test_data.drop('target', axis=1, inplace=True)
+    target_test = validation_data['target']
 
     # build models for each view and return probabilities
     parzen_view1 =  ParzenWindowMulticlassKDE()
     parzen_view1.train(select_view_parzen(train_data, 'fac'), parameter)
-    pred_parzen_view1 = parzen_view1.predict_proba(select_view_parzen(test_data,  'fac', train=False))
+    pred_parzen_view1 = parzen_view1.predict_proba(select_view_parzen(validation_data,  'fac', train=False))
 
     parzen_view2 = ParzenWindowMulticlassKDE()
     parzen_view2.train(select_view_parzen(train_data, 'fou'), parameter)
-    pred_parzen_view2 = list(parzen_view2.predict_proba(select_view_parzen(test_data,  'fou', train=False)))
+    pred_parzen_view2 = list(parzen_view2.predict_proba(select_view_parzen(validation_data,  'fou', train=False)))
 
     parzen_view3 = ParzenWindowMulticlassKDE()
     parzen_view3.train(select_view_parzen(train_data, 'kar'), parameter)
-    pred_parzen_view3 = list(parzen_view3.predict_proba(select_view_parzen(test_data,  'kar', train=False)))
+    pred_parzen_view3 = list(parzen_view3.predict_proba(select_view_parzen(validation_data,  'kar', train=False)))
 
     # probability combination
     predictions = []
-    for i in range(len(test_data)):
-        # sum probs
-        sum_prob = pred_parzen_view1[i]+pred_parzen_view2[i]+pred_parzen_view3[i]
-        # normalize
-        norm_prob = (sum_prob - min(sum_prob)) / (sum_prob - min(sum_prob) ).sum()
+    for i in range(len(validation_data)):
+        view_combination = {}
+        # sum exponential probability
+        for classe in pred_parzen_view1[i].keys():
+            view_combination[classe] = pred_parzen_view1[i][classe] + pred_parzen_view2[i][classe] + pred_parzen_view3[i][classe] 
+        keys = list(view_combination.keys())
+        values = list(view_combination.values())
+        # normalization
+        values = (values - min(values)) / (values - min(values) ).sum()
+        final_probabilities = {}
+        cont=0
+        for key in keys:
+            final_probabilities[key] = values[cont]
+            cont+=1
+
         # decision
-        decision = np.where(norm_prob == max(norm_prob))[0][0]
+        decision = max(final_probabilities, key=final_probabilities.get)
         predictions.append(decision)
 
     # evaluate decision
