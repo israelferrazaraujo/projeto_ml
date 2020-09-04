@@ -1,6 +1,6 @@
 from lib.datasets import load_datasets, dissimilarity_matrices
 from lib.metrics import calc_metric
-from lib.part_1 import MFCMdd_RWL_P
+from lib.MFCMdd import MFCMdd_RWL_P
 
 
 """""""""""""""""""""""""""""""""""""""
