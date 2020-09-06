@@ -163,7 +163,7 @@ for i in range(len(best_models)):
     table1['confidence_interval_95'].append( (np.percentile(acc, 2.5), np.percentile(acc, 97.5))   ) 
 
 table1 = pd.DataFrame(table1)
-table1.to_csv('output/results_part2.csv')
+table1.to_csv('output/results_best_models.csv')
 
 # friedman 
 from scipy.stats import friedmanchisquare
