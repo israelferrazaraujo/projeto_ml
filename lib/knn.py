@@ -30,17 +30,15 @@ def KnnViewModelling(train_data, test_data, K):
 
     # build models for each view and return probabilities
     from sklearn.neighbors import KNeighborsClassifier
-    from sklearn.neighbors import DistanceMetric
-
-    knn_view1 = KNeighborsClassifier(n_neighbors=K, weights='distance', metric= DistanceMetric.get_metric('euclidean'))
+    knn_view1 = KNeighborsClassifier(n_neighbors=K, weights='distance')
     knn_view1.fit(select_view(features_train, 'fac'), target_train)
     pred_knn_view1 = list(knn_view1.predict_proba(select_view(features_test,  'fac')))
 
-    knn_view2 = KNeighborsClassifier(n_neighbors=K, weights='distance', metric= DistanceMetric.get_metric('euclidean'))
+    knn_view2 = KNeighborsClassifier(n_neighbors=K, weights='distance')
     knn_view2.fit(select_view(features_train, 'fou'), target_train)
     pred_knn_view2 = list(knn_view2.predict_proba(select_view(features_test,  'fou')))
 
-    knn_view3 = KNeighborsClassifier(n_neighbors=K, weights='distance', metric= DistanceMetric.get_metric('euclidean'))
+    knn_view3 = KNeighborsClassifier(n_neighbors=K, weights='distance')
     knn_view3.fit(select_view(features_train, 'kar'), target_train)
     pred_knn_view3 = list(knn_view3.predict_proba(select_view(features_test,  'kar')))
 

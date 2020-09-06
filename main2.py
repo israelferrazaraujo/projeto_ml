@@ -44,7 +44,6 @@ with open('output/crisp_partitions_all.txt') as f:
         partition = partition.split(', ')
         partition = [int(i) for i in partition]
         data['target_partition'+str(i+1)] = partition
-        print('target_partition'+str(i+1))
 
 
 """""""""""""""""""""""""""""""""""""""
@@ -115,6 +114,31 @@ parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_lis
 parzen_search.to_csv('output/searches/parzen_search_h.csv', index=False)
 
 
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+visualize search parameters
+"""""""""""""""""""""""""""""""""""""""""""""""""""
+
+def plotSearch(df):
+
+    df = df[df.target == 'target_partition2']
+
+    import matplotlib.pyplot as plt
+
+    fig, ax = plt.subplots()
+    ax.errorbar(df.parameter, df.accuracy,
+                yerr=df.standard_deviation,
+                fmt='-o')
+
+    ax.set_xlabel('Parâmetro K')
+    ax.set_ylabel('Acurácia / Desvio-padrão')
+
+    plt.show()
+
+
+plotSearch(knn_search)
+plotSearch(parzen_search)
+
 """""""""""""""""""""""""""""""""""""""""""""""""""
 execute experiments with best accuracy parameter
 for KNN and Parzen Window
@@ -163,7 +187,7 @@ for i in range(len(best_models)):
     table1['confidence_interval_95'].append( (np.percentile(acc, 2.5), np.percentile(acc, 97.5))   ) 
 
 table1 = pd.DataFrame(table1)
-table1.to_csv('output/results_best_models.csv')
+table1.to_csv('output/results_main2.csv')
 
 # friedman 
 from scipy.stats import friedmanchisquare
