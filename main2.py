@@ -106,11 +106,11 @@ def searchParameter(dataset, model, times_kfold, parameter_list, get_distributio
 
 
 # search K for KNN
-knn_search = searchParameter(data, 'KNN_', times_kfold = 10, parameter_list = range(1,51))
+knn_search = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = range(1,51))
 knn_search.to_csv('output/searches/knn_search_k.csv', index=False)
 
 # search h for Parzen Window 
-parzen_search = searchParameter(data, 'Parzen_', times_kfold = 10, parameter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
+parzen_search = searchParameter(data, 'Parzen_', times_kfold = 30, parameter_list = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
 parzen_search.to_csv('output/searches/parzen_search_h.csv', index=False)
 
 
@@ -120,19 +120,15 @@ visualize search parameters
 """""""""""""""""""""""""""""""""""""""""""""""""""
 
 def plotSearch(df):
-
     df = df[df.target == 'target_partition2']
-
+    print(df[df.accuracy == max(df.accuracy)])
     import matplotlib.pyplot as plt
-
     fig, ax = plt.subplots()
     ax.errorbar(df.parameter, df.accuracy,
-                yerr=df.standard_deviation,
+                #yerr=df.standard_deviation,
                 fmt='-o')
-
     ax.set_xlabel('Parâmetro K')
     ax.set_ylabel('Acurácia / Desvio-padrão')
-
     plt.show()
 
 
@@ -146,15 +142,15 @@ for KNN and Parzen Window
 
 # GNB
 gnb = searchParameter(data, 'GNB_', times_kfold = 30, parameter_list = ['dummy'], get_distribution=True)
-gnb.to_csv('output/searches/GNB.csv', index=False)
+gnb.to_csv('output/results_gnb.csv', index=False)
 
 # KNN
-knn = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = [9], get_distribution=True)
-knn.to_csv('output/searches/knn.csv', index=False)
+knn = searchParameter(data, 'KNN_', times_kfold = 30, parameter_list = [23], get_distribution=True)
+knn.to_csv('output/results_knn.csv', index=False)
 
 # Parzen Window
 parzen = searchParameter(data, 'Parzen_', times_kfold = 30, parameter_list = [0.4], get_distribution=True)
-parzen.to_csv('output/searches/parzen.csv', index=False)
+parzen.to_csv('output/results_pw.csv', index=False)
 
 
 """""""""""""""""""""""""""""""""""""""""""""""""""
@@ -163,9 +159,9 @@ EVALUATION METRICS
 
 
 # import experiment results
-gnb = pd.read_csv('output/searches/GNB.csv')
-knn = pd.read_csv('output/searches/knn.csv')
-parzen = pd.read_csv('output/searches/parzen.csv')
+gnb = pd.read_csv('output/results_gnb.csv')
+knn = pd.read_csv('output/results_knn.csv')
+parzen = pd.read_csv('output/results_pw.csv')
 
 # name models and combine
 gnb['model'] = 'gnb'
@@ -174,34 +170,46 @@ parzen['model'] = 'parzen'
 models = pd.concat([gnb, knn, parzen]).reset_index(drop=True)
 
 
-# accuracy and confidence interval of best models
-best_models = models[models.target == 'target_partition2'].reset_index(drop=True) 
-table1 = {'model':[],'mean_accuracy':[],'confidence_interval_90':[], 'confidence_interval_95':[]}
-for i in range(len(best_models)):
-    best_models.accuracy[i] = best_models.accuracy[i].replace(']','').replace('[','').split(', ')
-    best_models.accuracy[i] = [float(x) for x in best_models.accuracy[i]]
-    acc = best_models.accuracy[i]
-    table1['model'].append(best_models.model[i]  + '_' + best_models.target[i]) 
-    table1['mean_accuracy'].append( np.mean(acc) ) 
-    table1['confidence_interval_90'].append( (np.percentile(acc, 5.0), np.percentile(acc, 95.0))   ) 
-    table1['confidence_interval_95'].append( (np.percentile(acc, 2.5), np.percentile(acc, 97.5))   ) 
+def metricsTable(models, target_partition, version=''):
 
-table1 = pd.DataFrame(table1)
-table1.to_csv('output/results_main2.csv')
+    # accuracy and confidence interval of best models
+    best_models = models[models.target == target_partition].reset_index(drop=True) 
+    table1 = {'model':[],'mean_accuracy':[],'confidence_interval_90':[], 'confidence_interval_95':[]}
 
-# friedman 
+    for i in range(len(best_models)):
+        best_models.accuracy[i] = best_models.accuracy[i].replace(']','').replace('[','').split(', ')
+        best_models.accuracy[i] = [float(x) for x in best_models.accuracy[i]]
+        acc = best_models.accuracy[i]
+        table1['model'].append(best_models.model[i]  + '_' + best_models.target[i]) 
+        table1['mean_accuracy'].append( np.mean(acc) ) 
+        table1['confidence_interval_90'].append( (np.percentile(acc, 5.0), np.percentile(acc, 95.0))   ) 
+        table1['confidence_interval_95'].append( (np.percentile(acc, 2.5), np.percentile(acc, 97.5))   ) 
+
+    table1 = pd.DataFrame(table1)
+    table1.to_csv('output/results_main2'+version+'.csv')
+
+    return best_models
+
+
+# best partition on part 1
+models_test = metricsTable(models, 'target_partition2')
+
+# original target for comparison
+metricsTable(models, 'target_original',version='_original')
+
+# friedman test
 from scipy.stats import friedmanchisquare
-stat, p = friedmanchisquare(best_models.accuracy[0], best_models.accuracy[1], best_models.accuracy[2])
-print('Friedman Test for All=%.6f, p=%.6f' % (stat, p))
+stat, p = friedmanchisquare(models_test.accuracy[0], models_test.accuracy[1], models_test.accuracy[2])
+print('Friedman Test for All=%.6f, p=%.20f' % (stat, p))
 
 # paired wilcoxon
 from scipy.stats import wilcoxon
 
-stat, p = wilcoxon(best_models.accuracy[0], best_models.accuracy[1])
+stat, p = wilcoxon(models_test.accuracy[0], models_test.accuracy[1])
 print('Wilcoxon Test GNB/KNN =%.6f, p=%.6f' % (stat, p))
 
-stat, p = wilcoxon(best_models.accuracy[0], best_models.accuracy[2])
+stat, p = wilcoxon(models_test.accuracy[0], models_test.accuracy[2])
 print('Wilcoxon Test GNB/Parzen =%.6f, p=%.6f' % (stat, p))
 
-stat, p = wilcoxon(best_models.accuracy[1], best_models.accuracy[2])
+stat, p = wilcoxon(models_test.accuracy[1], models_test.accuracy[2])
 print('Wilcoxon Test KNN/Parzen =%.6f, p=%.6f' % (stat, p))

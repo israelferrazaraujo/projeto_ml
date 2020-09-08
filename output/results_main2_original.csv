@@ -1,0 +1,4 @@
+,model,mean_accuracy,confidence_interval_90,confidence_interval_95
+0,gnb_target_original,0.95325,"(0.93, 0.975)","(0.925, 0.98)"
+1,knn_target_original,0.9744499999999999,"(0.955, 0.99)","(0.952375, 0.99)"
+2,parzen_target_original,0.9606499999999998,"(0.94, 0.98)","(0.935, 0.9850000000000001)"
