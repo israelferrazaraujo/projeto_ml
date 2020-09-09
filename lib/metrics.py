@@ -115,3 +115,36 @@ def calc_metric(U, G, y):
               'crisp_partition' : list(crisp)}
 
     return result
+
+
+
+
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+Additional experiments
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+
+
+
+
+def attrib_translation(y, crisp):
+  from itertools import permutations
+  from sklearn.metrics import accuracy_score
+
+  crisp_labels = list(set(crisp))
+  crisp_labels.sort()
+
+  indexes = [(j, [i for i, x in enumerate(crisp) if x == j]) for j in crisp_labels]
+  translation_labels = [ max(list(y[index]), key=list(y[index]).count) for j, index in indexes ]
+  translation_table = dict((x, y) for x, y in zip(crisp_labels, translation_labels)) 
+
+  translated_crisp = np.empty(len(crisp), dtype=int)
+  for j, index in indexes:
+    translated_crisp[index] = translation_table[j]
+  
+  error = 1-accuracy_score(y, translated_crisp)
+    
+  return error, translation_table, list(translated_crisp)
+
+
+
+
